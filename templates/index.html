@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Daily - AI 日报</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #0a0a0f;
+    color: #e0e0e0;
+    min-height: 100vh;
+}
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+header h1 {
+    font-size: 36px;
+    color: #64ffda;
+}
+header p {
+    color: #888;
+    margin-top: 8px;
+}
+.latest-card {
+    text-align: center;
+    margin-bottom: 50px;
+}
+.latest-card img {
+    max-width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+.latest-card .no-report {
+    padding: 60px;
+    background: #1a1a2e;
+    border-radius: 12px;
+    color: #666;
+}
+.history h2 {
+    font-size: 20px;
+    color: #ccc;
+    margin-bottom: 20px;
+}
+.history-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+}
+.history-item {
+    background: #1a1a2e;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.2s;
+}
+.history-item:hover { transform: translateY(-4px); }
+.history-item img {
+    width: 100%;
+    aspect-ratio: 3/4;
+    object-fit: cover;
+}
+.history-item .date {
+    padding: 8px 12px;
+    font-size: 14px;
+    color: #888;
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>AI Daily</h1>
+        <p>每日 AI 新闻速递</p>
+    </header>
+    <div class="latest-card">
+        {% if latest_report %}
+        <img src="/output/{{ latest_report.date }}.png" alt="今日日报">
+        {% else %}
+        <div class="no-report">暂无日报，请等待下次自动生成</div>
+        {% endif %}
+    </div>
+    {% if history_reports %}
+    <div class="history">
+        <h2>历史日报</h2>
+        <div class="history-grid">
+            {% for report in history_reports %}
+            <div class="history-item">
+                <img src="/output/{{ report.date }}.png" alt="{{ report.date }}">
+                <div class="date">{{ report.date }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+</body>
+</html>
