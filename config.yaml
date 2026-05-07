@@ -1,0 +1,28 @@
+schedule:
+  cron: "0 8 * * *"
+
+llm:
+  model: "claude-sonnet-4-20250514"
+  api_key_env: "ANTHROPIC_API_KEY"
+
+crawler:
+  sources:
+    - hackernews
+    - reddit
+  reddit_subreddits:
+    - artificial
+    - MachineLearning
+    - LocalLLaMA
+  keywords:
+    - AI
+    - LLM
+    - GPT
+    - Claude
+    - machine learning
+    - deep learning
+  max_items_per_source: 50
+
+output:
+  dir: "output"
+  card_width: 800
+  top_n: 12
