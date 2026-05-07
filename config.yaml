@@ -1,8 +1,8 @@
 schedule:
-  cron: "0 8 * * *"
+  cron: "30 10 * * *"
 
 llm:
-  model: "claude-sonnet-4-20250514"
+  model: "anthropic/auto"
   api_key_env: "ANTHROPIC_API_KEY"
 
 crawler:
