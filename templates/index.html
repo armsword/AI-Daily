@@ -5,71 +5,188 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI Daily - AI 日报</title>
 <style>
+:root {
+    --bg: #0f0f1a;
+    --card-bg: #1a1a2e;
+    --accent: #64ffda;
+    --text: #e0e0e0;
+    --text-muted: #888;
+    --border: #2a2a3e;
+}
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: #0a0a0f;
-    color: #e0e0e0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
     min-height: 100vh;
+    line-height: 1.6;
 }
 .container {
-    max-width: 900px;
+    max-width: 860px;
     margin: 0 auto;
-    padding: 40px 20px;
+    padding: 48px 24px;
 }
 header {
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 48px;
 }
 header h1 {
-    font-size: 36px;
-    color: #64ffda;
+    font-size: 40px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -1px;
 }
-header p {
-    color: #888;
+header .subtitle {
+    color: var(--text-muted);
     margin-top: 8px;
+    font-size: 15px;
 }
-.latest-card {
-    text-align: center;
-    margin-bottom: 50px;
+header .date {
+    display: inline-block;
+    margin-top: 16px;
+    padding: 6px 16px;
+    background: var(--card-bg);
+    border-radius: 20px;
+    font-size: 14px;
+    color: var(--accent);
+    border: 1px solid var(--border);
 }
-.latest-card img {
-    max-width: 100%;
+
+/* 趋势总结 */
+.trend-summary {
+    background: linear-gradient(135deg, rgba(100, 255, 218, 0.06) 0%, rgba(100, 255, 218, 0.02) 100%);
+    border: 1px solid rgba(100, 255, 218, 0.15);
     border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    padding: 24px 28px;
+    margin-bottom: 40px;
+    font-size: 15px;
+    color: #ccc;
+    line-height: 1.8;
 }
-.latest-card .no-report {
-    padding: 60px;
-    background: #1a1a2e;
+.trend-summary::before {
+    content: "📊 今日趋势";
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* 分类区域 */
+.category-section {
+    margin-bottom: 36px;
+}
+.category-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent);
+    padding: 6px 14px;
+    background: rgba(100, 255, 218, 0.08);
+    border-radius: 6px;
+    display: inline-block;
+    margin-bottom: 16px;
+    letter-spacing: 0.5px;
+}
+
+/* 新闻卡片 */
+.news-item {
+    background: var(--card-bg);
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+    transition: border-color 0.2s, transform 0.2s;
+}
+.news-item:hover {
+    border-color: rgba(100, 255, 218, 0.3);
+    transform: translateX(4px);
+}
+.news-item a {
+    text-decoration: none;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.4;
+}
+.news-item a:hover {
+    color: var(--accent);
+}
+.news-item .meta {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+.news-item .summary {
+    margin-top: 6px;
+    font-size: 13px;
+    color: #aaa;
+}
+.news-item .source-tag {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(100, 255, 218, 0.1);
+    color: var(--accent);
+}
+.news-item .score {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+/* 无数据 */
+.no-report {
+    text-align: center;
+    padding: 80px 40px;
+    background: var(--card-bg);
     border-radius: 12px;
     color: #666;
+    font-size: 16px;
+}
+
+/* 历史日报 */
+.history {
+    margin-top: 60px;
+    border-top: 1px solid var(--border);
+    padding-top: 36px;
 }
 .history h2 {
-    font-size: 20px;
+    font-size: 18px;
     color: #ccc;
     margin-bottom: 20px;
 }
-.history-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 16px;
-}
-.history-item {
-    background: #1a1a2e;
+.history-list a {
+    display: block;
+    padding: 12px 16px;
+    background: var(--card-bg);
     border-radius: 8px;
-    overflow: hidden;
-    transition: transform 0.2s;
-}
-.history-item:hover { transform: translateY(-4px); }
-.history-item img {
-    width: 100%;
-    aspect-ratio: 3/4;
-    object-fit: cover;
-}
-.history-item .date {
-    padding: 8px 12px;
+    margin-bottom: 8px;
+    text-decoration: none;
+    color: var(--text);
     font-size: 14px;
-    color: #888;
+    border: 1px solid var(--border);
+    transition: border-color 0.2s;
+}
+.history-list a:hover {
+    border-color: var(--accent);
+}
+.history-list .hist-date {
+    color: var(--accent);
+    font-weight: 500;
+    margin-right: 12px;
+}
+
+footer {
+    text-align: center;
+    margin-top: 60px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: #555;
 }
 </style>
 </head>
@@ -77,28 +194,61 @@ header p {
 <div class="container">
     <header>
         <h1>AI Daily</h1>
-        <p>每日 AI 新闻速递</p>
-    </header>
-    <div class="latest-card">
+        <p class="subtitle">每日 AI 新闻速递 · 自动抓取 · LLM 分析</p>
         {% if latest_report %}
-        <img src="/output/{{ latest_report.date }}.png" alt="今日日报">
-        {% else %}
-        <div class="no-report">暂无日报，请等待下次自动生成</div>
+        <span class="date">{{ latest_report.date }}</span>
         {% endif %}
+    </header>
+
+    {% if latest_report %}
+    <div class="trend-summary">{{ latest_report.summary }}</div>
+
+    {% set ns = namespace(grouped={}) %}
+    {% for item in latest_report.news_items %}
+        {% set cat = item.category if item.category else "未分类" %}
+        {% if cat not in ns.grouped %}
+            {% set _ = ns.grouped.update({cat: []}) %}
+        {% endif %}
+        {% set _ = ns.grouped[cat].append(item) %}
+    {% endfor %}
+
+    {% for category, items in ns.grouped.items() %}
+    <div class="category-section">
+        <div class="category-title">{{ category }}</div>
+        {% for item in items %}
+        <div class="news-item">
+            <a href="{{ item.url }}" target="_blank" rel="noopener">{{ item.title }}</a>
+            {% if item.summary and item.summary != item.title %}
+            <div class="summary">{{ item.summary }}</div>
+            {% endif %}
+            <div class="meta">
+                <span class="source-tag">{{ item.source }}</span>
+                <span class="score">↑ {{ item.score }}</span>
+            </div>
+        </div>
+        {% endfor %}
     </div>
+    {% endfor %}
+
+    {% else %}
+    <div class="no-report">暂无日报，请等待下次自动生成</div>
+    {% endif %}
+
     {% if history_reports %}
     <div class="history">
         <h2>历史日报</h2>
-        <div class="history-grid">
+        <div class="history-list">
             {% for report in history_reports %}
-            <div class="history-item">
-                <img src="/output/{{ report.date }}.png" alt="{{ report.date }}">
-                <div class="date">{{ report.date }}</div>
-            </div>
+            <a href="/?date={{ report.date }}">
+                <span class="hist-date">{{ report.date }}</span>
+                {{ report.summary[:60] }}...
+            </a>
             {% endfor %}
         </div>
     </div>
     {% endif %}
+
+    <footer>Powered by AI Daily · Data from Hacker News & Reddit</footer>
 </div>
 </body>
 </html>

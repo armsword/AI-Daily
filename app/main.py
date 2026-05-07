@@ -3,7 +3,6 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
@@ -33,10 +32,6 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="AI Daily", lifespan=lifespan)
-
-# 挂载输出目录为静态文件
-Path("output").mkdir(parents=True, exist_ok=True)
-app.mount("/output", StaticFiles(directory="output"), name="output")
 
 templates = Jinja2Templates(directory="templates")
 

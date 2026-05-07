@@ -19,7 +19,6 @@ async def test_run_daily_pipeline():
     with patch("app.scheduler.jobs.HackerNewsCrawler") as mock_hn, \
          patch("app.scheduler.jobs.RedditCrawler") as mock_reddit, \
          patch("app.scheduler.jobs.LLMAnalyzer") as mock_analyzer, \
-         patch("app.scheduler.jobs.CardRenderer") as mock_renderer, \
          patch("app.scheduler.jobs.save_report") as mock_save, \
          patch("app.scheduler.jobs.init_db"):
 
@@ -37,13 +36,8 @@ async def test_run_daily_pipeline():
         )
         mock_analyzer.return_value = mock_analyzer_instance
 
-        mock_renderer_instance = MagicMock()
-        mock_renderer_instance.render_card.return_value = "output/2026-05-07.png"
-        mock_renderer.return_value = mock_renderer_instance
-
         await run_daily_pipeline(config)
 
         mock_hn_instance.crawl.assert_called_once()
         mock_reddit_instance.crawl.assert_called_once()
         mock_analyzer_instance.analyze.assert_called_once()
-        mock_renderer_instance.render_card.assert_called_once()

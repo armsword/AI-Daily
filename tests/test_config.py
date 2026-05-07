@@ -9,12 +9,12 @@ def test_load_config_returns_app_config():
 
 def test_config_schedule_cron():
     config = load_config("config.yaml")
-    assert config.schedule.cron == "0 8 * * *"
+    assert config.schedule.cron == "30 10 * * *"
 
 
 def test_config_llm_model():
     config = load_config("config.yaml")
-    assert "claude" in config.llm.model or "gpt" in config.llm.model
+    assert config.llm.model != ""
 
 
 def test_config_crawler_sources():

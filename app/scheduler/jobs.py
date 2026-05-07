@@ -6,7 +6,6 @@ from app.config import AppConfig
 from app.crawler.hackernews import HackerNewsCrawler
 from app.crawler.reddit import RedditCrawler
 from app.analyzer.llm_analyzer import LLMAnalyzer
-from app.renderer.card_renderer import CardRenderer
 from app.models import NewsItem, DailyReport, init_db, save_report
 
 logger = logging.getLogger(__name__)
@@ -46,17 +45,28 @@ async def run_daily_pipeline(config: AppConfig) -> None:
     analyzer = LLMAnalyzer(model=config.llm.model, top_n=config.output.top_n)
     analysis = await analyzer.analyze(unique_news)
 
-    # 3. 渲染卡片
+    # 3. 构建报告（LLM分析后的新闻带有category和summary）
     today = date.today().isoformat()
-    renderer = CardRenderer(output_dir=config.output.dir, card_width=config.output.card_width)
-    image_path = renderer.render_card(today, analysis)
+    analyzed_items = []
+    for n in analysis.categorized_news:
+        # 从unique_news中找到对应的原始item补充时间等字段
+        original = next((i for i in unique_news if i.url == n.get("url")), None)
+        analyzed_items.append(NewsItem(
+            title=n.get("title", ""),
+            url=n.get("url", ""),
+            source=n.get("source", ""),
+            published_at=original.published_at if original else date.today(),
+            score=original.score if original else 0,
+            summary=n.get("summary", ""),
+            category=n.get("category", "未分类"),
+        ))
 
     # 4. 保存报告
     report = DailyReport(
         date=today,
-        news_items=unique_news,
+        news_items=analyzed_items,
         summary=analysis.trend_summary,
-        image_path=image_path,
+        image_path="",
     )
     save_report(DB_PATH, report)
     logger.info(f"Daily report saved: {today}")
