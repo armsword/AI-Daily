@@ -37,8 +37,7 @@ DAILY_PROMPT_TEMPLATE = """生成一张中文AI科技日报长图，严格参照
 {news_content}
 
 【底部】
-- 一行手写小字总结语
-- 署名「AI日报 · 每日AI新闻速递」
+- 署名「AI日报 · 每日AI新闻速递」（仅此一行，不要再写其他总结文字）
 
 【装饰元素】
 - 适当添加手绘小图标：灯泡💡、火箭🚀、芯片、机器人等
@@ -62,7 +61,7 @@ class NanoBananaImageGenerator:
             news_lines.append(f"{num}「{category}」{summary}")
 
         news_content = "\n\n".join(news_lines)
-        summary = analysis.trend_summary[:100]
+        summary = analysis.trend_summary[:40]
         return DAILY_PROMPT_TEMPLATE.format(
             date=date, news_content=news_content, summary=summary
         )
