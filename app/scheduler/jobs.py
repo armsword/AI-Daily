@@ -91,7 +91,7 @@ async def run_daily_pipeline(config: AppConfig) -> None:
         xhs_cookie = os.environ.get("XHS_COOKIE", "")
         if xhs_cookie:
             xhs_publisher = XhsPublisher(cookie=xhs_cookie)
-            xhs_publisher.publish_draft(image_path, f"AI日报 {today}", analysis.trend_summary)
+            await xhs_publisher.publish_draft(image_path, f"AI日报 {today}", analysis.trend_summary)
 
         douyin_cookie = os.environ.get("DOUYIN_COOKIE", "")
         if douyin_cookie:

@@ -12,5 +12,4 @@ pytest-asyncio==0.23.0
 respx==0.21.1
 Pillow==12.2.0
 google-genai>=1.52.0
-xhs==0.2.13
 playwright>=1.59.0
