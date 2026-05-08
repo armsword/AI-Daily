@@ -63,15 +63,15 @@ async def run_daily_pipeline(config: AppConfig) -> None:
             category=n.get("category", "未分类"),
         ))
 
-    # 4. 生成封面图（如果配置了 MiniMax）
+    # 4. 生成日报信息图（如果配置了 MiniMax）
     image_path = ""
     if config.minimax:
         api_key = os.environ.get(config.minimax.api_key_env, "")
         if api_key:
             generator = MiniMaxImageGenerator(api_key=api_key, api_base=config.minimax.api_base)
-            image_path = await generator.generate_cover(
-                summary=analysis.trend_summary,
+            image_path = await generator.generate_daily_image(
                 date=today,
+                analysis=analysis,
                 output_dir=config.output.dir,
             )
 
