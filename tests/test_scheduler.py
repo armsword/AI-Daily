@@ -19,6 +19,7 @@ async def test_run_daily_pipeline():
     with patch("app.scheduler.jobs.HackerNewsCrawler") as mock_hn, \
          patch("app.scheduler.jobs.RedditCrawler") as mock_reddit, \
          patch("app.scheduler.jobs.LLMAnalyzer") as mock_analyzer, \
+         patch("app.scheduler.jobs.MiniMaxImageGenerator") as mock_img, \
          patch("app.scheduler.jobs.save_report") as mock_save, \
          patch("app.scheduler.jobs.init_db"):
 

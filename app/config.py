@@ -25,11 +25,17 @@ class OutputConfig(BaseModel):
     top_n: int
 
 
+class MiniMaxConfig(BaseModel):
+    api_key_env: str
+    api_base: str = "https://api.minimaxi.com"
+
+
 class AppConfig(BaseModel):
     schedule: ScheduleConfig
     llm: LLMConfig
     crawler: CrawlerConfig
     output: OutputConfig
+    minimax: MiniMaxConfig | None = None
 
 
 def load_config(path: str) -> AppConfig:

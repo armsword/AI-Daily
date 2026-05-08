@@ -25,7 +25,7 @@ async def test_fetch_subreddit_posts(reddit_crawler):
                         "title": "New LLM beats GPT-4",
                         "url": "https://example.com/llm",
                         "score": 500,
-                        "created_utc": datetime(2026, 5, 7, 6, 0, 0, tzinfo=timezone.utc).timestamp(),
+                        "created_utc": datetime.now(timezone.utc).timestamp() - 3600,
                         "selftext": "A new model...",
                         "permalink": "/r/artificial/comments/abc/new_llm/",
                     }
@@ -53,7 +53,7 @@ async def test_filter_by_keywords_reddit(reddit_crawler):
                         "title": "Cooking with Python",
                         "url": "https://example.com/cook",
                         "score": 100,
-                        "created_utc": datetime(2026, 5, 7, 6, 0, 0, tzinfo=timezone.utc).timestamp(),
+                        "created_utc": datetime.now(timezone.utc).timestamp() - 3600,
                         "selftext": "",
                         "permalink": "/r/artificial/comments/xyz/cook/",
                     }
@@ -74,7 +74,7 @@ async def test_filter_by_keywords_reddit(reddit_crawler):
 
 @pytest.mark.asyncio
 async def test_crawl_multiple_subreddits(reddit_crawler):
-    now_ts = datetime(2026, 5, 7, 6, 0, 0, tzinfo=timezone.utc).timestamp()
+    now_ts = datetime.now(timezone.utc).timestamp() - 3600
     response_artificial = {
         "data": {"children": [{"data": {
             "title": "AI breakthrough", "url": "https://a.com",

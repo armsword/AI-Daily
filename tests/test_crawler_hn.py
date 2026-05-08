@@ -28,7 +28,7 @@ async def test_fetch_story_detail(hn_crawler):
         "title": "New AI Model Released",
         "url": "https://example.com/ai",
         "score": 200,
-        "time": int(datetime(2026, 5, 7, 6, 0, 0, tzinfo=timezone.utc).timestamp()),
+        "time": int(datetime.now(timezone.utc).timestamp()) - 3600,
         "type": "story",
     }
     with respx.mock:
@@ -45,11 +45,11 @@ async def test_fetch_story_detail(hn_crawler):
 async def test_filter_by_keywords(hn_crawler):
     story_ai = {
         "id": 1, "title": "New AI breakthrough", "url": "https://a.com",
-        "score": 100, "time": int(datetime(2026, 5, 7, 6, 0, 0, tzinfo=timezone.utc).timestamp()), "type": "story",
+        "score": 100, "time": int(datetime.now(timezone.utc).timestamp()) - 3600, "type": "story",
     }
     story_unrelated = {
         "id": 2, "title": "Cooking recipes", "url": "https://b.com",
-        "score": 50, "time": int(datetime(2026, 5, 7, 6, 0, 0, tzinfo=timezone.utc).timestamp()), "type": "story",
+        "score": 50, "time": int(datetime.now(timezone.utc).timestamp()) - 3600, "type": "story",
     }
     with respx.mock:
         respx.get("https://hacker-news.firebaseio.com/v0/topstories.json").mock(

@@ -52,6 +52,17 @@ header .date {
     border: 1px solid var(--border);
 }
 
+/* 封面图 */
+.cover-image {
+    text-align: center;
+    margin-bottom: 32px;
+}
+.cover-image img {
+    max-width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
 /* 趋势总结 */
 .trend-summary {
     background: linear-gradient(135deg, rgba(100, 255, 218, 0.06) 0%, rgba(100, 255, 218, 0.02) 100%);
@@ -201,6 +212,11 @@ footer {
     </header>
 
     {% if latest_report %}
+    {% if latest_report.image_path %}
+    <div class="cover-image">
+        <img src="/output/{{ latest_report.date }}-cover.png" alt="AI Daily Cover">
+    </div>
+    {% endif %}
     <div class="trend-summary">{{ latest_report.summary }}</div>
 
     {% set ns = namespace(grouped={}) %}

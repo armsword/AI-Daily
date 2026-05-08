@@ -1,3 +1,4 @@
+import os
 import logging
 from datetime import date
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -6,6 +7,7 @@ from app.config import AppConfig
 from app.crawler.hackernews import HackerNewsCrawler
 from app.crawler.reddit import RedditCrawler
 from app.analyzer.llm_analyzer import LLMAnalyzer
+from app.renderer.image_generator import MiniMaxImageGenerator
 from app.models import NewsItem, DailyReport, init_db, save_report
 
 logger = logging.getLogger(__name__)
@@ -61,12 +63,24 @@ async def run_daily_pipeline(config: AppConfig) -> None:
             category=n.get("category", "未分类"),
         ))
 
-    # 4. 保存报告
+    # 4. 生成封面图（如果配置了 MiniMax）
+    image_path = ""
+    if config.minimax:
+        api_key = os.environ.get(config.minimax.api_key_env, "")
+        if api_key:
+            generator = MiniMaxImageGenerator(api_key=api_key, api_base=config.minimax.api_base)
+            image_path = await generator.generate_cover(
+                summary=analysis.trend_summary,
+                date=today,
+                output_dir=config.output.dir,
+            )
+
+    # 5. 保存报告
     report = DailyReport(
         date=today,
         news_items=analyzed_items,
         summary=analysis.trend_summary,
-        image_path="",
+        image_path=image_path,
     )
     save_report(DB_PATH, report)
     logger.info(f"Daily report saved: {today}")
