@@ -8,6 +8,8 @@ from app.crawler.reddit import RedditCrawler
 from app.analyzer.llm_analyzer import LLMAnalyzer
 import os
 from app.renderer.image_generator import NanoBananaImageGenerator
+from app.publisher.xiaohongshu import XhsPublisher
+from app.publisher.douyin import DouyinPublisher
 from app.models import NewsItem, DailyReport, init_db, save_report
 
 logger = logging.getLogger(__name__)
@@ -83,6 +85,18 @@ async def run_daily_pipeline(config: AppConfig) -> None:
     )
     save_report(DB_PATH, report)
     logger.info(f"Daily report saved: {today}")
+
+    # 6. 上传到社交平台草稿
+    if image_path:
+        xhs_cookie = os.environ.get("XHS_COOKIE", "")
+        if xhs_cookie:
+            xhs_publisher = XhsPublisher(cookie=xhs_cookie)
+            xhs_publisher.publish_draft(image_path, f"AI日报 {today}", analysis.trend_summary)
+
+        douyin_cookie = os.environ.get("DOUYIN_COOKIE", "")
+        if douyin_cookie:
+            douyin_publisher = DouyinPublisher(cookie=douyin_cookie)
+            await douyin_publisher.publish_draft(image_path, f"AI日报 {today}")
 
 
 def create_daily_job(scheduler: AsyncIOScheduler, config: AppConfig) -> None:
