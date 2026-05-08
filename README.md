@@ -2,7 +2,7 @@
 
 每天定时从 Hacker News 和 Reddit 爬取 AI 相关新闻，通过 LLM 深度分析、分类、摘要，再调用 Nano Banana Pro 生成手绘风格的中文日报信息图，最终通过 Web 页面展示。
 
-![AI日报示例](output/2026-05-08.png)
+![AI日报示例](docs/daily-example.jpg)
 
 ## 功能特性
 
