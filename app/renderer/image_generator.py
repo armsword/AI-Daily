@@ -19,7 +19,8 @@ DAILY_PROMPT_TEMPLATE = """生成一张中文AI科技日报长图，严格参照
 - 左上角小字：「每天3分钟，掌握AI大事」
 - 正中大标题：「AI日报」，使用粗体手写字，深棕色
 - 标题下方：日期 {date}
-- 右上角：用☑勾选框样式列出今日3个核心要点（简短中文）
+- 右上角：用勾选框样式列出以下3个要点（原样显示，不要改动）：
+{key_points}
 
 【今日概要】
 用一行带方框的小字简述：「{summary}」
@@ -62,8 +63,17 @@ class NanoBananaImageGenerator:
 
         news_content = "\n\n".join(news_lines)
         summary = analysis.trend_summary[:40]
+
+        # 取前3条新闻摘要作为核心要点（截断到10字）
+        key_points = []
+        for item in analysis.categorized_news[:3]:
+            s = item.get("summary", "")[:10]
+            key_points.append(f"☑ {s}")
+        key_points_text = "\n".join(key_points)
+
         return DAILY_PROMPT_TEMPLATE.format(
-            date=date, news_content=news_content, summary=summary
+            date=date, news_content=news_content, summary=summary,
+            key_points=key_points_text
         )
 
     async def generate_daily_image(
