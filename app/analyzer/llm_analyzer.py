@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 ANALYSIS_PROMPT = """你是AI新闻分析师。分析以下新闻，选出最重要的{top_n}条，返回纯JSON（不要markdown代码块）。
 
 要求：
-- summary: 15字以内中文摘要
+- summary: 20-25字中文摘要，必须是完整通顺的中文句子
 - category: 只能是 大模型/应用/研究/开源/行业 之一
 - trend_summary: 3句话总结今日趋势
 - title和url保持原样不要修改

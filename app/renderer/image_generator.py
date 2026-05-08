@@ -56,11 +56,10 @@ class NanoBananaImageGenerator:
         circled_nums = "①②③④⑤⑥⑦⑧"
         news_lines = []
         for i, item in enumerate(analysis.categorized_news[:6], 0):
-            title = item.get("title", "")
             summary = item.get("summary", "")
             category = item.get("category", "")
             num = circled_nums[i] if i < len(circled_nums) else str(i + 1)
-            news_lines.append(f"{num} 分类标签「{category}」\n标题：{title}\n说明：{summary}")
+            news_lines.append(f"{num}「{category}」{summary}")
 
         news_content = "\n\n".join(news_lines)
         summary = analysis.trend_summary[:100]
