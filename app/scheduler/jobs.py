@@ -63,9 +63,9 @@ async def run_daily_pipeline(config: AppConfig) -> None:
             category=n.get("category", "未分类"),
         ))
 
-    # 4. 生成日报信息图（Nano Banana Pro）
+    # 4. 生成日报信息图（Nano Banana Pro via Visionary）
     image_path = ""
-    api_key = os.environ.get("GEMINI_API_KEY", "")
+    api_key = os.environ.get("VISIONARY_API_KEY", "")
     if api_key:
         generator = NanoBananaImageGenerator(api_key=api_key)
         image_path = await generator.generate_daily_image(

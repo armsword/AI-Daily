@@ -20,7 +20,7 @@ async def test_run_daily_pipeline():
          patch("app.scheduler.jobs.RedditCrawler") as mock_reddit, \
          patch("app.scheduler.jobs.LLMAnalyzer") as mock_analyzer, \
          patch("app.scheduler.jobs.NanoBananaImageGenerator") as mock_generator, \
-         patch.dict("os.environ", {"GEMINI_API_KEY": "test-key"}), \
+         patch.dict("os.environ", {"VISIONARY_API_KEY": "test-key"}), \
          patch("app.scheduler.jobs.save_report") as mock_save, \
          patch("app.scheduler.jobs.init_db"):
 

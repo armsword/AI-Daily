@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from google import genai
+import httpx
 from app.analyzer.llm_analyzer import AnalysisResult
 
 logger = logging.getLogger(__name__)
@@ -46,9 +46,9 @@ DAILY_PROMPT_TEMPLATE = """生成一张中文AI科技日报长图，严格参照
 
 
 class NanoBananaImageGenerator:
-    def __init__(self, api_key: str, model: str = "gemini-3-pro-image-preview"):
+    def __init__(self, api_key: str, api_base: str = "https://visionary.beer"):
         self.api_key = api_key
-        self.model = model
+        self.api_base = api_base.rstrip("/")
 
     def _build_prompt(self, date: str, analysis: AnalysisResult) -> str:
         circled_nums = "①②③④⑤⑥⑦⑧"
@@ -70,28 +70,43 @@ class NanoBananaImageGenerator:
         self, date: str, analysis: AnalysisResult, output_dir: str
     ) -> str:
         prompt = self._build_prompt(date, analysis)
+        url = f"{self.api_base}/openapi/v1/images/generations"
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
+        payload = {
+            "prompt": prompt,
+            "model": "Nano_Banana_Pro",
+            "ratio": "9:16",
+            "imageSize": "2K",
+        }
 
         try:
-            client = genai.Client(api_key=self.api_key)
-            response = client.models.generate_content(
-                model=self.model,
-                contents=[prompt],
-            )
+            async with httpx.AsyncClient(timeout=180.0) as client:
+                resp = await client.post(url, headers=headers, json=payload)
+                resp.raise_for_status()
+                data = resp.json()
 
-            # 从响应中提取图片
-            for part in response.parts:
-                if part.inline_data is not None:
-                    image_bytes = part.inline_data.data
-                    Path(output_dir).mkdir(parents=True, exist_ok=True)
-                    filename = f"{date}.png"
-                    output_path = str(Path(output_dir) / filename)
-                    with open(output_path, "wb") as f:
-                        f.write(image_bytes)
-                    logger.info(f"Daily image generated: {output_path}")
-                    return output_path
+            image_url = data.get("results", [{}])[0].get("url", "")
+            if not image_url:
+                logger.warning("No image URL in Nano Banana Pro response")
+                return ""
 
-            logger.warning("No image found in Nano Banana Pro response")
-            return ""
+            # 下载图片
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                img_resp = await client.get(image_url)
+                img_resp.raise_for_status()
+                image_bytes = img_resp.content
+
+            Path(output_dir).mkdir(parents=True, exist_ok=True)
+            filename = f"{date}.png"
+            output_path = str(Path(output_dir) / filename)
+            with open(output_path, "wb") as f:
+                f.write(image_bytes)
+
+            logger.info(f"Daily image generated: {output_path}")
+            return output_path
         except Exception as e:
             logger.error(f"Nano Banana Pro image generation failed: {e}")
             return ""

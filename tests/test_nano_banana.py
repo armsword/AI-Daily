@@ -1,15 +1,17 @@
 import pytest
-from unittest.mock import patch, MagicMock
+import httpx
+import respx
 from pathlib import Path
-from PIL import Image
-import io
 from app.renderer.image_generator import NanoBananaImageGenerator
 from app.analyzer.llm_analyzer import AnalysisResult
 
 
 @pytest.fixture
 def generator():
-    return NanoBananaImageGenerator(api_key="test-key")
+    return NanoBananaImageGenerator(
+        api_key="test-key",
+        api_base="https://visionary.beer",
+    )
 
 
 @pytest.fixture
@@ -21,13 +23,6 @@ def sample_analysis():
             {"title": "开源新模型", "summary": "社区发布新模型", "category": "开源", "source": "reddit", "url": "https://example.com/2"},
         ],
     )
-
-
-def _make_fake_image_bytes() -> bytes:
-    img = Image.new("RGB", (100, 100), (255, 0, 0))
-    buf = io.BytesIO()
-    img.save(buf, format="PNG")
-    return buf.getvalue()
 
 
 def test_build_prompt_contains_news(generator, sample_analysis):
@@ -45,20 +40,21 @@ def test_build_prompt_contains_summary(generator, sample_analysis):
 
 @pytest.mark.asyncio
 async def test_generate_saves_image(generator, sample_analysis, tmp_path):
-    fake_bytes = _make_fake_image_bytes()
+    fake_image_url = "https://visionary.beer/openapi-assets/test.png"
+    fake_image_bytes = b"\x89PNG\r\n\x1a\nfake-image-data"
 
-    mock_part = MagicMock()
-    mock_part.text = None
-    mock_part.inline_data = MagicMock()
-    mock_part.inline_data.data = fake_bytes
-
-    mock_response = MagicMock()
-    mock_response.parts = [mock_part]
-
-    with patch("app.renderer.image_generator.genai") as mock_genai:
-        mock_client = MagicMock()
-        mock_client.models.generate_content.return_value = mock_response
-        mock_genai.Client.return_value = mock_client
+    with respx.mock:
+        respx.post("https://visionary.beer/openapi/v1/images/generations").mock(
+            return_value=httpx.Response(200, json={
+                "id": "test-id",
+                "results": [{"url": fake_image_url, "content": ""}],
+                "status": "succeeded",
+                "progress": 100,
+            })
+        )
+        respx.get(fake_image_url).mock(
+            return_value=httpx.Response(200, content=fake_image_bytes)
+        )
 
         result = await generator.generate_daily_image(
             date="2026-05-08",
@@ -68,15 +64,15 @@ async def test_generate_saves_image(generator, sample_analysis, tmp_path):
 
         assert result.endswith("2026-05-08.png")
         assert Path(result).exists()
-        mock_client.models.generate_content.assert_called_once()
+        assert Path(result).read_bytes() == fake_image_bytes
 
 
 @pytest.mark.asyncio
-async def test_generate_returns_empty_on_failure(generator, sample_analysis, tmp_path):
-    with patch("app.renderer.image_generator.genai") as mock_genai:
-        mock_client = MagicMock()
-        mock_client.models.generate_content.side_effect = Exception("API error")
-        mock_genai.Client.return_value = mock_client
+async def test_generate_returns_empty_on_api_error(generator, sample_analysis, tmp_path):
+    with respx.mock:
+        respx.post("https://visionary.beer/openapi/v1/images/generations").mock(
+            return_value=httpx.Response(500, json={"error": "server error"})
+        )
 
         result = await generator.generate_daily_image(
             date="2026-05-08",
@@ -87,22 +83,33 @@ async def test_generate_returns_empty_on_failure(generator, sample_analysis, tmp
 
 
 @pytest.mark.asyncio
-async def test_generate_no_image_in_response(generator, sample_analysis, tmp_path):
-    mock_part = MagicMock()
-    mock_part.text = "Here is a description"
-    mock_part.inline_data = None
+async def test_generate_sends_correct_payload(generator, sample_analysis, tmp_path):
+    fake_image_url = "https://visionary.beer/openapi-assets/test.png"
 
-    mock_response = MagicMock()
-    mock_response.parts = [mock_part]
+    with respx.mock:
+        route = respx.post("https://visionary.beer/openapi/v1/images/generations").mock(
+            return_value=httpx.Response(200, json={
+                "id": "test-id",
+                "results": [{"url": fake_image_url, "content": ""}],
+                "status": "succeeded",
+                "progress": 100,
+            })
+        )
+        respx.get(fake_image_url).mock(
+            return_value=httpx.Response(200, content=b"img")
+        )
 
-    with patch("app.renderer.image_generator.genai") as mock_genai:
-        mock_client = MagicMock()
-        mock_client.models.generate_content.return_value = mock_response
-        mock_genai.Client.return_value = mock_client
-
-        result = await generator.generate_daily_image(
+        await generator.generate_daily_image(
             date="2026-05-08",
             analysis=sample_analysis,
             output_dir=str(tmp_path),
         )
-        assert result == ""
+
+        import json
+        body = json.loads(route.calls[0].request.content)
+        assert body["model"] == "Nano_Banana_Pro"
+        assert body["ratio"] == "9:16"
+        assert "GPT-5" in body["prompt"]
+
+        auth = route.calls[0].request.headers["authorization"]
+        assert auth == "Bearer test-key"
