@@ -78,6 +78,6 @@ async def test_prompt_contains_news_content(generator, sample_analysis, tmp_path
         )
         body = json.loads(route.calls[0].request.content)
         assert body["model"] == "image-01"
-        assert body["aspect_ratio"] == "3:4"
+        assert body["aspect_ratio"] == "9:16"
         assert "GPT-5" in body["prompt"]
         assert "大模型" in body["prompt"]

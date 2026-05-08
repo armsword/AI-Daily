@@ -6,41 +6,68 @@ from app.analyzer.llm_analyzer import AnalysisResult
 
 logger = logging.getLogger(__name__)
 
-DAILY_PROMPT_TEMPLATE = """请生成一张中文AI日报信息图，手绘插画风格，暖色调牛皮纸背景。
+DAILY_PROMPT_TEMPLATE = """生成一张中文AI科技日报长图，严格参照以下风格和排版要求：
 
-要求：
-- 顶部大标题「AI日报」，日期：{date}
-- 右上角简短总结今日要点（2-3行小字）
-- 正文按编号排列以下新闻，每条新闻配一个相关的小图标/插画：
+【整体风格】
+- 手写钢笔/马克笔字体风格，中文手写体，温暖亲切
+- 泛黄牛皮纸背景，带轻微褶皱和纸张纹理
+- 所有文字必须使用中文（仅公司/产品专有名词保留英文，如OpenAI、GPT等）
+- 竖版长图，宽窄比约3:5
 
+【顶部区域】
+- 左上角小字：「每天3分钟，掌握AI大事」
+- 正中大标题：「AI日报」，使用粗体手写字，深棕色
+- 标题下方：日期 {date}
+- 右上角：用☑勾选框样式列出今日3个核心要点（简短中文）
+
+【今日概要】
+用一行带方框的小字简述：「{summary}」
+
+【新闻正文】
+按以下新闻逐条排列，每条新闻包含：
+- 彩色圆角分类标签（橙色/蓝色/绿色/紫色，如「融资并购」「大模型」「开源」「研究」「行业应用」）
+- 大号数字编号（①②③...）
+- 中文粗体标题
+- 2-3行中文说明文字
+- 右侧或旁边配一个相关的手绘小插图/logo简笔画
+- 条目之间用手绘虚线分隔
+
+新闻内容：
 {news_content}
 
-风格要求：
-- 手绘涂鸦风格，像笔记本上的手写笔记
-- 牛皮纸/米黄色温暖背景
-- 用不同颜色的标记笔标注重点
-- 每条新闻有编号，标题加粗，下方小字是简短说明
-- 适当添加箭头、圆圈、星号等手绘装饰元素
-- 底部有一行小字「AI日报 · 每日AI新闻速递」
-- 竖版排列，类似报纸版面
-- 文字必须清晰可读"""
+【底部】
+- 一行手写小字总结语
+- 署名「AI日报 · 每日AI新闻速递」
+
+【装饰元素】
+- 适当添加手绘小图标：灯泡💡、火箭🚀、芯片、机器人等
+- 用彩色马克笔高亮关键词
+- 添加手绘箭头、星号、下划线等装饰
+- 整体排版紧凑但不拥挤，留有适当留白"""
 
 
 class MiniMaxImageGenerator:
-    def __init__(self, api_key: str, api_base: str = "https://api.minimaxi.com"):
+    def __init__(self, api_key: str, api_base: str = "https://api.minimaxi.com",
+                 style_reference: str = ""):
         self.api_key = api_key
         self.api_base = api_base.rstrip("/")
+        self.style_reference_path = style_reference
 
     def _build_prompt(self, date: str, analysis: AnalysisResult) -> str:
+        circled_nums = "①②③④⑤⑥⑦⑧"
         news_lines = []
-        for i, item in enumerate(analysis.categorized_news[:8], 1):
+        for i, item in enumerate(analysis.categorized_news[:6], 0):
             title = item.get("title", "")
             summary = item.get("summary", "")
             category = item.get("category", "")
-            news_lines.append(f"{i}. 【{category}】{title}\n   {summary}")
+            num = circled_nums[i] if i < len(circled_nums) else str(i + 1)
+            news_lines.append(f"{num} 分类标签「{category}」\n标题：{title}\n说明：{summary}")
 
         news_content = "\n\n".join(news_lines)
-        return DAILY_PROMPT_TEMPLATE.format(date=date, news_content=news_content)
+        summary = analysis.trend_summary[:100]
+        return DAILY_PROMPT_TEMPLATE.format(
+            date=date, news_content=news_content, summary=summary
+        )
 
     async def generate_daily_image(
         self, date: str, analysis: AnalysisResult, output_dir: str
@@ -51,9 +78,18 @@ class MiniMaxImageGenerator:
         payload = {
             "model": "image-01",
             "prompt": prompt,
-            "aspect_ratio": "3:4",
+            "aspect_ratio": "9:16",
             "response_format": "base64",
         }
+
+        # 如果有风格参考图，使用 subject_reference
+        if self.style_reference_path and Path(self.style_reference_path).exists():
+            with open(self.style_reference_path, "rb") as f:
+                ref_b64 = base64.b64encode(f.read()).decode()
+            payload["subject_reference"] = [{
+                "type": "face",
+                "image_base64": ref_b64,
+            }]
 
         try:
             async with httpx.AsyncClient(timeout=120.0) as client:

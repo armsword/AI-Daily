@@ -19,7 +19,7 @@ async def test_run_daily_pipeline():
     with patch("app.scheduler.jobs.HackerNewsCrawler") as mock_hn, \
          patch("app.scheduler.jobs.RedditCrawler") as mock_reddit, \
          patch("app.scheduler.jobs.LLMAnalyzer") as mock_analyzer, \
-         patch("app.scheduler.jobs.MiniMaxImageGenerator") as mock_img, \
+         patch("app.scheduler.jobs.PillowInfographicRenderer") as mock_renderer, \
          patch("app.scheduler.jobs.save_report") as mock_save, \
          patch("app.scheduler.jobs.init_db"):
 
@@ -36,6 +36,10 @@ async def test_run_daily_pipeline():
             trend_summary="test", categorized_news=[]
         )
         mock_analyzer.return_value = mock_analyzer_instance
+
+        mock_renderer_instance = MagicMock()
+        mock_renderer_instance.render.return_value = "output/2026-05-07.png"
+        mock_renderer.return_value = mock_renderer_instance
 
         await run_daily_pipeline(config)
 
