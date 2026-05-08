@@ -62,7 +62,7 @@ class NanoBananaImageGenerator:
             news_lines.append(f"{num}「{category}」{summary}")
 
         news_content = "\n\n".join(news_lines)
-        summary = analysis.trend_summary[:40]
+        summary = analysis.trend_summary
 
         # 取前3条新闻摘要作为核心要点
         key_points = []
