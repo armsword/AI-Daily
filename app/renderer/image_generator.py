@@ -1,7 +1,6 @@
-import base64
 import logging
 from pathlib import Path
-import httpx
+from google import genai
 from app.analyzer.llm_analyzer import AnalysisResult
 
 logger = logging.getLogger(__name__)
@@ -46,12 +45,10 @@ DAILY_PROMPT_TEMPLATE = """生成一张中文AI科技日报长图，严格参照
 - 整体排版紧凑但不拥挤，留有适当留白"""
 
 
-class MiniMaxImageGenerator:
-    def __init__(self, api_key: str, api_base: str = "https://api.minimaxi.com",
-                 style_reference: str = ""):
+class NanoBananaImageGenerator:
+    def __init__(self, api_key: str, model: str = "gemini-3-pro-image-preview"):
         self.api_key = api_key
-        self.api_base = api_base.rstrip("/")
-        self.style_reference_path = style_reference
+        self.model = model
 
     def _build_prompt(self, date: str, analysis: AnalysisResult) -> str:
         circled_nums = "①②③④⑤⑥⑦⑧"
@@ -73,45 +70,28 @@ class MiniMaxImageGenerator:
         self, date: str, analysis: AnalysisResult, output_dir: str
     ) -> str:
         prompt = self._build_prompt(date, analysis)
-        url = f"{self.api_base}/v1/image_generation"
-        headers = {"Authorization": f"Bearer {self.api_key}"}
-        payload = {
-            "model": "image-01",
-            "prompt": prompt,
-            "aspect_ratio": "9:16",
-            "response_format": "base64",
-        }
-
-        # 如果有风格参考图，使用 subject_reference
-        if self.style_reference_path and Path(self.style_reference_path).exists():
-            with open(self.style_reference_path, "rb") as f:
-                ref_b64 = base64.b64encode(f.read()).decode()
-            payload["subject_reference"] = [{
-                "type": "face",
-                "image_base64": ref_b64,
-            }]
 
         try:
-            async with httpx.AsyncClient(timeout=120.0) as client:
-                resp = await client.post(url, headers=headers, json=payload)
-                resp.raise_for_status()
-                data = resp.json()
+            client = genai.Client(api_key=self.api_key)
+            response = client.models.generate_content(
+                model=self.model,
+                contents=[prompt],
+            )
 
-            base_resp = data.get("base_resp", {})
-            if base_resp.get("status_code", 0) != 0:
-                raise ValueError(f"MiniMax API error: {base_resp.get('status_msg', 'unknown')}")
+            # 从响应中提取图片
+            for part in response.parts:
+                if part.inline_data is not None:
+                    image_bytes = part.inline_data.data
+                    Path(output_dir).mkdir(parents=True, exist_ok=True)
+                    filename = f"{date}.png"
+                    output_path = str(Path(output_dir) / filename)
+                    with open(output_path, "wb") as f:
+                        f.write(image_bytes)
+                    logger.info(f"Daily image generated: {output_path}")
+                    return output_path
 
-            image_b64 = data["data"]["image_base64"][0]
-            image_bytes = base64.b64decode(image_b64)
-
-            Path(output_dir).mkdir(parents=True, exist_ok=True)
-            filename = f"{date}.png"
-            output_path = str(Path(output_dir) / filename)
-            with open(output_path, "wb") as f:
-                f.write(image_bytes)
-
-            logger.info(f"Daily image generated: {output_path}")
-            return output_path
+            logger.warning("No image found in Nano Banana Pro response")
+            return ""
         except Exception as e:
-            logger.error(f"MiniMax image generation failed: {e}")
+            logger.error(f"Nano Banana Pro image generation failed: {e}")
             return ""

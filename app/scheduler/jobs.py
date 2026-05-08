@@ -6,7 +6,8 @@ from app.config import AppConfig
 from app.crawler.hackernews import HackerNewsCrawler
 from app.crawler.reddit import RedditCrawler
 from app.analyzer.llm_analyzer import LLMAnalyzer
-from app.renderer.pillow_renderer import PillowInfographicRenderer
+import os
+from app.renderer.image_generator import NanoBananaImageGenerator
 from app.models import NewsItem, DailyReport, init_db, save_report
 
 logger = logging.getLogger(__name__)
@@ -62,13 +63,16 @@ async def run_daily_pipeline(config: AppConfig) -> None:
             category=n.get("category", "未分类"),
         ))
 
-    # 4. 生成日报信息图（Pillow 本地渲染）
-    renderer = PillowInfographicRenderer()
-    image_path = renderer.render(
-        date=today,
-        analysis=analysis,
-        output_dir=config.output.dir,
-    )
+    # 4. 生成日报信息图（Nano Banana Pro）
+    image_path = ""
+    api_key = os.environ.get("GEMINI_API_KEY", "")
+    if api_key:
+        generator = NanoBananaImageGenerator(api_key=api_key)
+        image_path = await generator.generate_daily_image(
+            date=today,
+            analysis=analysis,
+            output_dir=config.output.dir,
+        )
 
     # 5. 保存报告
     report = DailyReport(
