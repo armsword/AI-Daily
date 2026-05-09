@@ -17,7 +17,7 @@ class GitHubTrendingCrawler(BaseCrawler):
     async def crawl(self) -> list[NewsItem]:
         try:
             yesterday = (date.today() - timedelta(days=1)).isoformat()
-            query = f"topic:artificial-intelligence OR topic:llm OR topic:machine-learning pushed:>{yesterday}"
+            query = f"stars:>100 pushed:>{yesterday} (artificial-intelligence OR llm OR machine-learning OR deep-learning) in:topics"
             params = {
                 "q": query,
                 "sort": "stars",
