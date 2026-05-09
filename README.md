@@ -11,7 +11,7 @@
 - **关键词过滤**：20+ 自定义关键词，精准筛选 AI 相关内容
 - **LLM 智能分析**：使用大模型对新闻进行分类（大模型/应用/研究/开源/行业）、摘要和趋势总结
 - **AI 信息图生成**：通过 Nano Banana Pro 生成手绘牛皮纸风格的中文日报长图
-- **社交平台发布**：自动上传日报图片到小红书和抖音草稿箱（Playwright 浏览器自动化）
+- **社交平台发布**：自动上传日报图片到小红书、抖音和微信视频号（Playwright 浏览器自动化）
 - **定时自动运行**：基于 APScheduler 定时执行（默认每天 10:30）
 - **Web 页面展示**：简洁单页展示最新日报及历史记录，支持图片点击放大缩放
 
@@ -48,6 +48,7 @@ export VISIONARY_API_KEY="your-visionary-api-key"
 # 可选：社交平台自动发布
 export XHS_COOKIE="your-xiaohongshu-cookie"
 export DOUYIN_COOKIE="your-douyin-cookie"
+export WEIXIN_CHANNELS_COOKIE="your-weixin-channels-cookie"
 
 # 可选：扩展采集源
 export PRODUCTHUNT_TOKEN="your-producthunt-token"
@@ -58,6 +59,7 @@ export GITHUB_TOKEN="your-github-token"
 - `VISIONARY_API_KEY`：用于 Nano Banana Pro 图片生成（从 [visionary.beer](https://visionary.beer) 获取）
 - `XHS_COOKIE`：小红书创作者平台 Cookie（从 creator.xiaohongshu.com 登录后获取）
 - `DOUYIN_COOKIE`：抖音创作者中心 Cookie（从 creator.douyin.com 登录后获取）
+- `WEIXIN_CHANNELS_COOKIE`：微信视频号 Cookie（从 channels.weixin.qq.com 登录后获取）
 - `PRODUCTHUNT_TOKEN`：Product Hunt API Token（可选，无则跳过该源）
 - `GITHUB_TOKEN`：GitHub Token（可选，提高 API 请求频率）
 
@@ -122,7 +124,8 @@ AI-Daily/
 │   │   └── image_generator.py # Nano Banana Pro 图片生成
 │   ├── publisher/
 │   │   ├── xiaohongshu.py     # 小红书草稿发布
-│   │   └── douyin.py          # 抖音草稿发布
+│   │   ├── douyin.py          # 抖音草稿发布
+│   │   └── weixin_channels.py # 微信视频号发布
 │   └── scheduler/
 │       └── jobs.py            # 定时任务 Pipeline
 ├── templates/
@@ -146,7 +149,7 @@ Nano Banana Pro 生成信息图
     ↓
 保存报告 (SQLite) + 展示 (Web)
     ↓
-自动上传草稿 (小红书 + 抖音)
+自动上传草稿 (小红书 + 抖音 + 视频号)
 ```
 
 ## 运行测试
