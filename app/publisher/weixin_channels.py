@@ -4,11 +4,13 @@ from playwright.async_api import async_playwright
 logger = logging.getLogger(__name__)
 
 CHANNELS_CREATE_URL = "https://channels.weixin.qq.com/platform/post/create"
+DEFAULT_BGM = "宫崎骏的春天"
 
 
 class WeixinChannelsPublisher:
-    def __init__(self, cookie: str):
+    def __init__(self, cookie: str, bgm: str = DEFAULT_BGM):
         self.cookie = cookie
+        self.bgm = bgm
 
     def _parse_cookies(self) -> list[dict]:
         cookies = []
@@ -72,6 +74,12 @@ class WeixinChannelsPublisher:
 
             await page.wait_for_timeout(2000)
 
+            # 选择背景音乐
+            if self.bgm:
+                await self._select_bgm(page)
+
+            await page.wait_for_timeout(2000)
+
             # 点击"发表"按钮
             await page.evaluate('''() => {
                 const buttons = document.querySelectorAll('button');
@@ -86,6 +94,48 @@ class WeixinChannelsPublisher:
             await page.wait_for_timeout(5000)
 
             await browser.close()
+
+    async def _select_bgm(self, page) -> None:
+        """搜索并选择背景音乐"""
+        try:
+            # 点击"选择音乐"或"添加音乐"
+            await page.evaluate('''() => {
+                const els = document.querySelectorAll('span, div, a, button');
+                for (const el of els) {
+                    const text = el.textContent.trim();
+                    if (text.includes('选择音乐') || text.includes('添加音乐') || text.includes('配乐')) {
+                        el.click();
+                        return;
+                    }
+                }
+            }''')
+            await page.wait_for_timeout(3000)
+
+            # 搜索音乐
+            search_input = page.locator('input[placeholder*="搜索"], input[placeholder*="音乐"]').first
+            if await search_input.count() > 0:
+                await search_input.click()
+                await search_input.fill(self.bgm)
+                await page.keyboard.press("Enter")
+                await page.wait_for_timeout(3000)
+
+                # 点击第一个搜索结果的"使用"按钮
+                await page.evaluate('''() => {
+                    const btns = document.querySelectorAll('span, button, div');
+                    for (const btn of btns) {
+                        const text = btn.textContent.trim();
+                        if (text === '使用' || text === '选择' || text === '添加') {
+                            btn.click();
+                            return;
+                        }
+                    }
+                }''')
+                await page.wait_for_timeout(2000)
+                logger.info(f"视频号背景音乐已选择: {self.bgm}")
+            else:
+                logger.warning("视频号未找到音乐搜索框")
+        except Exception as e:
+            logger.warning(f"视频号选择背景音乐失败（不影响发布）: {e}")
 
     async def publish_draft(self, image_path: str, title: str, description: str) -> bool:
         if not image_path:
