@@ -4,7 +4,7 @@ from playwright.async_api import async_playwright
 logger = logging.getLogger(__name__)
 
 DOUYIN_CREATOR_URL = "https://creator.douyin.com/creator-micro/content/upload"
-DEFAULT_BGM = "宫崎骏的春天"
+DEFAULT_BGM = "千与千寻主题曲 小提琴版"
 
 
 class DouyinPublisher:
