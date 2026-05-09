@@ -1,10 +1,14 @@
 import logging
+import re
 from datetime import date
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from app.config import AppConfig
 from app.crawler.hackernews import HackerNewsCrawler
 from app.crawler.reddit import RedditCrawler
+from app.crawler.techcrunch import TechCrunchCrawler
+from app.crawler.producthunt import ProductHuntCrawler
+from app.crawler.github_trending import GitHubTrendingCrawler
 from app.analyzer.llm_analyzer import LLMAnalyzer
 import os
 from app.renderer.image_generator import NanoBananaImageGenerator
@@ -14,6 +18,39 @@ from app.models import NewsItem, DailyReport, init_db, save_report
 
 logger = logging.getLogger(__name__)
 DB_PATH = "ai_daily.db"
+
+
+def _normalize_title(title: str) -> set[str]:
+    return set(re.sub(r'[^\w\s]', '', title.lower()).split())
+
+
+def _is_title_duplicate(title: str, existing_titles: list[str], threshold: float = 0.7) -> bool:
+    words = _normalize_title(title)
+    if not words:
+        return False
+    for existing in existing_titles:
+        existing_words = _normalize_title(existing)
+        if not existing_words:
+            continue
+        overlap = len(words & existing_words) / min(len(words), len(existing_words))
+        if overlap > threshold:
+            return True
+    return False
+
+
+def _deduplicate(news: list) -> list:
+    seen_urls = set()
+    titles = []
+    unique = []
+    for item in news:
+        if item.url in seen_urls:
+            continue
+        if _is_title_duplicate(item.title, titles):
+            continue
+        seen_urls.add(item.url)
+        titles.append(item.title)
+        unique.append(item)
+    return unique
 
 
 async def run_daily_pipeline(config: AppConfig) -> None:
@@ -30,18 +67,25 @@ async def run_daily_pipeline(config: AppConfig) -> None:
         keywords=config.crawler.keywords,
         max_items=config.crawler.max_items_per_source,
     )
+    tc_crawler = TechCrunchCrawler(max_items=config.crawler.max_items_per_source)
+    ph_crawler = ProductHuntCrawler(
+        token=os.environ.get("PRODUCTHUNT_TOKEN", ""),
+        max_items=30,
+    )
+    gh_crawler = GitHubTrendingCrawler(
+        token=os.environ.get("GITHUB_TOKEN", ""),
+        max_items=30,
+    )
 
     hn_news = await hn_crawler.crawl()
     reddit_news = await reddit_crawler.crawl()
-    all_news = hn_news + reddit_news
+    tc_news = await tc_crawler.crawl()
+    ph_news = await ph_crawler.crawl()
+    gh_news = await gh_crawler.crawl()
+    all_news = hn_news + reddit_news + tc_news + ph_news + gh_news
 
-    # 去重
-    seen_urls = set()
-    unique_news = []
-    for item in all_news:
-        if item.url not in seen_urls:
-            seen_urls.add(item.url)
-            unique_news.append(item)
+    # 去重：URL + 标题相似度
+    unique_news = _deduplicate(all_news)
 
     logger.info(f"Collected {len(unique_news)} unique news items")
 

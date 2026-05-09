@@ -14,7 +14,7 @@ def hn_crawler():
 @pytest.mark.asyncio
 async def test_fetch_top_story_ids(hn_crawler):
     with respx.mock:
-        respx.get("https://hacker-news.firebaseio.com/v0/topstories.json").mock(
+        respx.get("https://hacker-news.firebaseio.com/v0/newstories.json").mock(
             return_value=httpx.Response(200, json=[1, 2, 3, 4, 5])
         )
         ids = await hn_crawler.fetch_top_story_ids()
@@ -52,7 +52,7 @@ async def test_filter_by_keywords(hn_crawler):
         "score": 50, "time": int(datetime.now(timezone.utc).timestamp()) - 3600, "type": "story",
     }
     with respx.mock:
-        respx.get("https://hacker-news.firebaseio.com/v0/topstories.json").mock(
+        respx.get("https://hacker-news.firebaseio.com/v0/newstories.json").mock(
             return_value=httpx.Response(200, json=[1, 2])
         )
         respx.get("https://hacker-news.firebaseio.com/v0/item/1.json").mock(
@@ -75,7 +75,7 @@ async def test_filter_by_time_24h(hn_crawler):
         "score": 100, "time": old_time, "type": "story",
     }
     with respx.mock:
-        respx.get("https://hacker-news.firebaseio.com/v0/topstories.json").mock(
+        respx.get("https://hacker-news.firebaseio.com/v0/newstories.json").mock(
             return_value=httpx.Response(200, json=[1])
         )
         respx.get("https://hacker-news.firebaseio.com/v0/item/1.json").mock(

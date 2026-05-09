@@ -9,6 +9,9 @@ crawler:
   sources:
     - hackernews
     - reddit
+    - techcrunch
+    - producthunt
+    - github
   reddit_subreddits:
     - artificial
     - MachineLearning
@@ -20,7 +23,21 @@ crawler:
     - Claude
     - machine learning
     - deep learning
-  max_items_per_source: 50
+    - neural network
+    - transformer
+    - diffusion
+    - Gemini
+    - OpenAI
+    - Anthropic
+    - Mistral
+    - Llama
+    - stable diffusion
+    - AGI
+    - RAG
+    - fine-tuning
+    - embedding
+    - multimodal
+  max_items_per_source: 100
 
 minimax:
   api_key_env: "MINIMAX_API_KEY"

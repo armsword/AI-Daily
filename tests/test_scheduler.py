@@ -18,6 +18,9 @@ async def test_run_daily_pipeline():
     config = load_config("config.yaml")
     with patch("app.scheduler.jobs.HackerNewsCrawler") as mock_hn, \
          patch("app.scheduler.jobs.RedditCrawler") as mock_reddit, \
+         patch("app.scheduler.jobs.TechCrunchCrawler") as mock_tc, \
+         patch("app.scheduler.jobs.ProductHuntCrawler") as mock_ph, \
+         patch("app.scheduler.jobs.GitHubTrendingCrawler") as mock_gh, \
          patch("app.scheduler.jobs.LLMAnalyzer") as mock_analyzer, \
          patch("app.scheduler.jobs.NanoBananaImageGenerator") as mock_generator, \
          patch("app.scheduler.jobs.XhsPublisher") as mock_xhs, \
@@ -34,6 +37,18 @@ async def test_run_daily_pipeline():
         mock_reddit_instance.crawl.return_value = []
         mock_reddit.return_value = mock_reddit_instance
 
+        mock_tc_instance = AsyncMock()
+        mock_tc_instance.crawl.return_value = []
+        mock_tc.return_value = mock_tc_instance
+
+        mock_ph_instance = AsyncMock()
+        mock_ph_instance.crawl.return_value = []
+        mock_ph.return_value = mock_ph_instance
+
+        mock_gh_instance = AsyncMock()
+        mock_gh_instance.crawl.return_value = []
+        mock_gh.return_value = mock_gh_instance
+
         mock_analyzer_instance = AsyncMock()
         mock_analyzer_instance.analyze.return_value = MagicMock(
             trend_summary="test", categorized_news=[]
@@ -48,4 +63,5 @@ async def test_run_daily_pipeline():
 
         mock_hn_instance.crawl.assert_called_once()
         mock_reddit_instance.crawl.assert_called_once()
+        mock_tc_instance.crawl.assert_called_once()
         mock_analyzer_instance.analyze.assert_called_once()

@@ -13,7 +13,7 @@ class HackerNewsCrawler(BaseCrawler):
 
     async def fetch_top_story_ids(self) -> list[int]:
         async with httpx.AsyncClient() as client:
-            resp = await client.get(f"{HN_API_BASE}/topstories.json")
+            resp = await client.get(f"{HN_API_BASE}/newstories.json")
             resp.raise_for_status()
             return resp.json()[:self.max_items]
 
